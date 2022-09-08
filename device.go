@@ -10,6 +10,9 @@ import (
 // DataProc type.
 type DataProc func(pOutputSample, pInputSamples []byte, framecount uint32)
 
+// DataProc raw pointer type.
+type RawDataProc func(pOutputSample, pInputSamples unsafe.Pointer, sizeInBytes, framecount uint32)
+
 // StopProc type.
 type StopProc func()
 
@@ -19,6 +22,8 @@ type DeviceCallbacks struct {
 	Data DataProc
 	// Stop is called when the device stopped.
 	Stop StopProc
+	// Raw
+	RawData RawDataProc
 }
 
 // Device represents a streaming instance.
@@ -56,6 +61,7 @@ func InitDevice(context Context, deviceConfig DeviceConfig, deviceCallbacks Devi
 	deviceMutex.Lock()
 	dataCallbacks[rawDevice] = deviceCallbacks.Data
 	stopCallbacks[rawDevice] = deviceCallbacks.Stop
+	rawDataCallbacks[rawDevice] = deviceCallbacks.RawData
 	deviceMutex.Unlock()
 
 	return &dev, nil
@@ -141,6 +147,7 @@ func (dev *Device) Uninit() {
 	deviceMutex.Lock()
 	delete(dataCallbacks, rawDevice)
 	delete(stopCallbacks, rawDevice)
+	delete(rawDataCallbacks, rawDevice)
 	deviceMutex.Unlock()
 
 	C.ma_device_uninit(rawDevice)
@@ -149,12 +156,14 @@ func (dev *Device) Uninit() {
 
 var deviceMutex sync.Mutex
 var dataCallbacks = make(map[*C.ma_device]DataProc)
+var rawDataCallbacks = make(map[*C.ma_device]RawDataProc)
 var stopCallbacks = make(map[*C.ma_device]StopProc)
 
 //export goDataCallback
 func goDataCallback(pDevice *C.ma_device, pOutput, pInput unsafe.Pointer, frameCount C.ma_uint32) {
 	deviceMutex.Lock()
 	callback := dataCallbacks[pDevice]
+	rawDataCallback := rawDataCallbacks[pDevice]
 	deviceMutex.Unlock()
 
 	if callback != nil {
@@ -173,6 +182,12 @@ func goDataCallback(pDevice *C.ma_device, pOutput, pInput unsafe.Pointer, frameC
 		}
 
 		callback(outputSamples, inputSamples, uint32(frameCount))
+	}
+
+	// pass raw-data to the regsiter/s
+	if rawDataCallback != nil {
+		sizeInBytes := uint32(C.ma_get_bytes_per_sample(pDevice.capture.format))
+		rawDataCallback(pOutput, pInput, sizeInBytes, uint32(frameCount))
 	}
 }
 
