@@ -11,7 +11,7 @@ import (
 type DataProc func(pOutputSample, pInputSamples []byte, framecount uint32)
 
 // DataProc raw pointer type.
-type RawDataProc func(pOutputSample, pInputSamples unsafe.Pointer, sizeInBytes, framecount uint32)
+type RawDataProc func(pOutputSample, pInputSamples unsafe.Pointer, framecount uint32)
 
 // StopProc type.
 type StopProc func()
@@ -186,8 +186,7 @@ func goDataCallback(pDevice *C.ma_device, pOutput, pInput unsafe.Pointer, frameC
 
 	// pass raw-data to the regsiter/s
 	if rawDataCallback != nil {
-		sizeInBytes := uint32(C.ma_get_bytes_per_sample(pDevice.capture.format))
-		rawDataCallback(pOutput, pInput, sizeInBytes, uint32(frameCount))
+		rawDataCallback(pOutput, pInput, uint32(frameCount))
 	}
 }
 
