@@ -107,6 +107,22 @@ func (dev *Device) SampleRate() uint32 {
 	return uint32(dev.cptr().sampleRate)
 }
 
+func (dev *Device) SetAllowCaptureAutoStreamRouting(s bool) {
+	if s {
+		C.setAllowCaptureAutoStreamRouting(dev.cptr(), 1)
+	} else {
+		C.setAllowCaptureAutoStreamRouting(dev.cptr(), 0)
+	}
+}
+
+func (dev *Device) SetAllowPlaybackAutoStreamRouting(s bool) {
+	if s {
+		C.setAllowPlaybackAutoStreamRouting(dev.cptr(), 1)
+	} else {
+		C.setAllowPlaybackAutoStreamRouting(dev.cptr(), 0)
+	}
+}
+
 // Start activates the device.
 // For playback devices this begins playback. For capture devices it begins recording.
 //
