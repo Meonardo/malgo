@@ -18,6 +18,8 @@ extern "C"
     extern void setAllowCaptureAutoStreamRouting(ma_device *pDevice, ma_bool8 s);
     extern void setAllowPlaybackAutoStreamRouting(ma_device *pDevice, ma_bool8 s);
 
+    extern int setDeviceMasterVolume(ma_device *pDevice, float volume);
+
 #ifdef __cplusplus
 }
 #endif

@@ -36,3 +36,8 @@ void setAllowPlaybackAutoStreamRouting(ma_device *pDevice, ma_bool8 s)
 {
     pDevice->wasapi.allowPlaybackAutoStreamRouting = s;
 }
+
+int setDeviceMasterVolume(ma_device *pDevice, float volume)
+{
+    return ma_device_set_master_volume(pDevice, volume);
+}

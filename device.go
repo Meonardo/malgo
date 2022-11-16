@@ -123,6 +123,12 @@ func (dev *Device) SetAllowPlaybackAutoStreamRouting(s bool) {
 	}
 }
 
+func (dev *Device) ChangeVolume(v float32) int {
+	value := C.float(v)
+	r := C.setDeviceMasterVolume(dev.cptr(), value)
+	return int(r)
+}
+
 // Start activates the device.
 // For playback devices this begins playback. For capture devices it begins recording.
 //
